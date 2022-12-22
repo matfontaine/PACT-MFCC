@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>PACT - Module MFCC</title>
+		<title>PACT - Module transition</title>
 
 		<link rel="stylesheet" href="css/reset.css">
 		<link rel="stylesheet" href="css/reveal.css">
@@ -28,16 +28,15 @@
 
 				<section class="cover" data-background=""  data-state="no-title-footer no-progressbar has-dark-background">
 
-					<h2 id='coverh2'>Module Mel Frequency Cepstrum Coefficients (MFCC)</h2>
+					<h2 id='coverh2'>Module Transition</h2>
 					<h1  id='title_seminar'> PACT</h1>
-					<h3><a href="https://matfontaine.github.io/PACT-MFCC", id='github_url'>matfontaine.github.io/PACT-MFCC</a></h3>
+					<h3><a href="https://matfontaine.github.io/PACT-MFCC", id='github_url'>matfontaine.github.io/PACT-TRANSITION</a></h3>
 					<p id='coverauthors'>
 						Mathieu FONTAINE<br />
 						mathieu.fontaine@telecom-paris.fr
 					</p>
 					<p id="date">
 					2022-2023</br>
-					Inspiré des slides de Gaël Richard
 					</p>
 					<p>
 					<img src="css/theme/img/logo-Telecom.svg" id="telecom" class="logo" alt="">
@@ -53,10 +52,11 @@
 				<section>
 				<h1>Attentes du module</h1>
 				<ul>
-					<li>Comprendre les MFCC</li>
-					<li>Implémentation à la main des MFCC avec la librairie Python</li>
+					<li>Comprendre comment effectuer une transition automatique entre morceaux</li>
+					<li>Compréhension de l'analyse en composante principale (ACP)</li>
+					<li>Implémentation sous python</li>
 					<li>Application au projet PACT (pourquoi ce module est adapté etc.)</li>
-					<li>Résultats avec la méthode implémentée + comparaison avec version de librosa</li>
+					<li>Résultats avec la méthode implémentée</li>
 				</ul>
 
 				<h2>Livrable</h2>
@@ -64,280 +64,164 @@
 					<li>Code de votre groupe en Python avec quelques résultats.</li>
 				</ul>
 
+				<h2>Pré-requis recommandé (par ordre de recommendation)</h2>
+				<ul>
+					<li>Module Onset</li>
+					<li>Module Time-stretching</li>
+					<li>Module Chroma</li>
+				</ul>
+
 </section>
 
 <section>
 	<h1>Plan</h1>
-	<h2>I - Transformée de Fourier usuels </h2>
-	<h2>II - Echelles perceptive audiofréquence</h2>
-	<h2>III - Mel frequency cepstral coefficients</h2>
+	<h2>I - Transitions </h2>
+	<h2>II - Caractéristiques notables</h2>
+	<h2>III - Analyse en composantes principale </h2>
 </section>
 <section class="cover" data-background="" data-state="no-title-footer no-progressbar has-dark-background">
-	<h2 id='coverh2'>I - Transformée de Fourier usuels</h2>
+	<h2 id='coverh2'>I - Transitions</h2>
 
 </section>
 <section>
-	<h2>La transformée de Fourier discrète</h2>
-Soit un signal discret $x_0,\dots,x_{N-1}$. Sa transformée de Fourier (discrète) est: 
-
-<center>$$
-X(f) = \sum_{n=0}^{N-1}x_ne^{-i\frac{2\pi f n}{N}}
-$$
-</center>
-<ul>
-	<li>On obtient une représentation fréquentielle du signal</li>
-	<li>Complexité algorithmique : $O(N^2)$</li>
-</ul></br>
-Il existe une version édulcorée qui réduit la complexité $O(N^2)$ en $O(N\log(N))\\$ (cf. <a href ="https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm">Cooley-Tukey FFT algorithm</a>)</br>
-
-<center><figure>
-<img src="figures/images/fft.jpg" width="65%">
-<figcaption><em>Figure : champ d'une Baleine. On remarque l'activité dans les basses fréquences.</em></figcaption>
-</figure>
+	<h2>Définition</h2>
+	<ul>
+		<li>La transition entre deux musiques est l'action de changer de musique.</li>
+		<li>Elle peut-être faite naturellement entre la fin et le début d'un morceau</li>
+		<li>Elle peut aussi être employée en plein milieu d'un morceau.</li>
+</ul>
 </center>
 <p>
-<div class="remarque">On emploiera la FFT dans la suite.</div>
+<div class="remarque">Naturellement, on s'interesse au dernier point.</div>
 </p>
-</section>
 
-<section>
-<h2>Transformée en cosinus discrète (DCT)</h2>
+<h3>Transition entre deux morceaux</h3>
 <ul>
-	<li>Ne prend en compte que le cosinus de l'exponentielle complexe</li>
-	<li>Utile en image (information plus complète sur les basses fréquences)</li>
-</ul>
-<center>$$
-	X(f) = \sum_{n=0}^{N-1}x_n\cos[\frac{\pi}{N}(n+\frac{1}{2})f] \qquad\qquad\qquad \texttt{(DCT-II)}
-	$$
-	</center>
-</section>
-
-<section>
-	<h2>Transformée de Fourier à Court Terme (TFCT)</h2>
-	<ul>
-		<li>Découpage d'un signal en plusieurs séquences</li>
-		<li>multiplication par un fenêtrage (Pourquoi ? <em>cf.</em> <a href="https://perso.telecom-paristech.fr/ladjal/PDFS/OASIS.pdf">poly OASIS</a>) </li>
-		<li>FFT sur chacune des séquences</li>
-	</ul>
-	<center><figure>
-		<img src="figures/images/STFT.png" width="50%">
-		<figcaption><em>TFCT d'un signal de parole (selon Laroche)</em></figcaption>
-		</figure>
-		</center>	
- <div class="remarque">On obtient un signal "temps-fréquence" $X(f,t)$</div>
-</section>
-
-<section>
-<h2>Spectrogramme de puissance</h2>
-<ul><li>Module au carré des coefficients</li>
-<center>$$
-	S(f,t) = |X(f,t)|^2 \qquad\qquad\qquad \texttt{(Spectrogramme de Puissance)}
-	$$
-</center>
-<li>Pour une meilleure représentation, on calcule le log du SP.</li>
-</ul>
-<center><figure>
-	<img src="figures/background.png" width="70%">
-	<figcaption><em>Figure : Log-Spectrogramme d'un signal de parole.</em></figcaption>
+<li>Les transitions "classiques" sont faites en utilisant un <em>fade-out</em> et <em>fade-in</em>
+<li>Ce changement est le plus souvent fait suivant une décroissance exponentielle du volume de la première musique et une croissance exponentielle du volume de la seconde</li>
+</li>
+<center style="margin-top:-1em;"><figure>
+	<img src="figures/images/transition.png" width="50%">
+	<figcaption><em>transition entre deux morceaux (selon Bittner)</em></figcaption>
 	</figure>
 	</center>
-</section>
-
-
-<section class="cover" data-background="" data-state="no-title-footer no-progressbar has-dark-background">
-	<h2 id='coverh2'>II - Echelle perceptive audiofréquence</h2>
-
-</section>
-
-<section>
-	<h2>Motivation</h2>
-	<ul>
-		<li>Prendre une échelle adaptée à la perception de l'oreille humaine</li>
-	</ul>
+</ul>
 </section>
 <section>
-	<h2>Echelle de Bark</h2>
-	<ul>
-		<li>Basée sur les bandes critiques telles qu'elles sont perçues par l'oreille</li>
-		<li>Proche de l'échelle log</li>
-	</ul>
-	<center><figure>
-		<img src="figures/images/echelle_Bark.png" width="70%">
-		<figcaption><em>Figure: Echelle de Bark.</em></figcaption>
-		</figure>
-		</center>
-</section>
-<section>
-	<h2>Echelle de Mel, Filtrage en échelle de Mel</h2>
-	<ul>
-		<li>Approximation de la sensation psychologique de hauteur d'un son (Tonie)</li>
-		<center>$$
-			\text{mel}(f) = 1000\log_{2}(1+\frac{f}{1000}) \qquad\qquad \texttt{(relation mel-fréquence)}
-			$$
-		</center>
-	</ul>
+<h2>Concordance de la transition</h2>
+<ul>
+<li>Une simple transition comme précédemment ne peut généralement pas s'adapter à n'importe quelle transition</li>
+<li>Certaines caractéristiques (dont nous parlerons après) sont très importantes</li>
+<li>L'une d'elle étant le tempo, le pitch shifting ou time stretching permettrait d'améliorer
+	la transition et d'obtenir un résultat plus probant
+</li>
 
-	<center><figure>
-		<img src="figures/images/filtre_mel.png" width="60%">
-		<figcaption><em>Figure: Filtre de mel.</em></figcaption>
-		</figure>
-		</center>
-	</br>
-		<div class="remarque">Naturellement, on utilisera cette échelle pour parler des MFCC.</div>	
+</ul>
+<div class="remarque">
+<b>Exemple :</b> une chanson à un tempo de 130 qui concorderait bien avec une autre à 140. Un time stretching (PSOLA) pour obtenir un tempo à 130
+et un alignement ferait une très bonne transition.</div>
 </section>
 
 <section class="cover" data-background="" data-state="no-title-footer no-progressbar has-dark-background">
-	<h2 id='coverh2'>III - Mel Frequency Cepestral coefficient</h2>
+	<h2 id='coverh2'>II - Caractéristiques notables</h2>
+</section>
+<section>
+	<h2>Similarité musicale</h2>
+Les techniques employés par Slaney (cf. <a href="https://ismir2008.ismir.net/papers/ISMIR2008_148.pdf"> ici</a>) pour classer les musiques entre elles repose sur, entre autres, les paramètres suivants : 
+<ul>
+	<li>La Loudness (puissance du morceau). Regarder <a href ="https://csteinmetz1.github.io/pyloudnorm-eval/paper/pyloudnorm_preprint.pdf"> ici</a> pour plus de détails</li>
+	<li>Le tempo</li>
+	<li>La time signature (4/4, 3/4 etc.)</li>
+
+</ul>
+
+</section>
+
+<section>
+	<h2>Autres informations</h2>
+	Il est cependant important aussi de prendre en compte d'autres composantes comme 
+	<ul>
+		<li>Le pitch (<a href="https://github.com/marl/crepe">CREPE</a> permet d'extraire cette information)</li>
+		<li>accords, mode, gamme etc. (peuvent être estimés via les chromas)</li>
+		<li>Le genre musical </li>
+	</ul>
+
+	<center style="margin: top -0.5em;"><figure>
+		<img src="figures/images/key_mode.png" width="40%">
+		<figcaption><em>représentation spatiale des accords (selon Bittner)</em></figcaption>
+		</figure>
+		</center>
+</section>
+
+<section class="cover" data-background="" data-state="no-title-footer no-progressbar has-dark-background">
+	<h2 id='coverh2'>III - Analyse en composantes principales</h2>
 
 </section>
 
 <section>
 	<h2>Motivations</h2>
 	<ul>
-		<li>Bandes de Mel : représentation perceptuelle de l'oreille humaine</li>
-		<li>Coefficients souhaité : faire ressortir des informations clés d'un signal audio (fréquence fondamentale, résonnance etc.)</li>
+		<li>Nous avons énuméré un certains nombres de caractéristiques</li>
+		<li>Cependant, il est difficile de classifier les similarités entre elles</li>
+		<li>En effet, trop de variables explicatives est difficilement interprétable</li>
 	</ul>
-	<div class="remarque">Le deuxième point est addressé par les coefficients cepstraux</div>	
+	<p>
+		<div class="remarque">Idée: réduire la dimension tout en préservant l'information.</div>
+		</p>
 </section>
 
 <section>
-	<h2>Représentation Cepstrale motivée par le signal de parole</h2>
-	Modélisation d'un modèle source filtre de la parole 
-<center>
-	$s(t) = g(t) \ast h(t)$
-</center>
-avec $\ast$ la convolution, $g$ le signal glottique et $h$ le filtre représentant le conduit vocal.
-<ul>
-	<li>La FFT transforme la convolution en produit.</li>
-	<li>On applique alors le module pour obtenir le spectre</li>
-	<li>On calcule le spectre et on fait la FFT inverse pour revenir dans le domaine temporelle</li>
-	<li>Les coefficients obtenues sont les cepstres.</li>
-	<center>
-		$c(\tau) := FFT^{-1}\log|S(f)| = FFT^{-1}\log|G(f)| + FFT^{-1}\log|H(f)|  $
-	</center>
-</ul>
-Plus généralement, si on fait la transformée discrète d'un signal que l'on note $X(0), \dots, X(N-1)$ ses coefficients on obtient
-les coefficients spectraux :  
-<center>
-	$$c_n = \frac{1}{N}\sum_{f=0}^{F-1}\log|X(f)|e^{\frac{2i\pi f n}{N}}$$
-</center>
-</section>
-
-<section>
-	<h2>Exemple sur la prononciation du mot "razor"</h2>
-	<div class="multiCol">
-		<div class="col">
-			<ul>
-				<li>basses fréquences $\rightarrow$ conduit vocal</li>
-				<li>haute-fréquence $\rightarrow$ signal glottique</li>
-				<li>"pick-picking" : approximation de la fondamentale de chaque phonème</li>
-			</ul>
-		</div>
-		<div class="col">
-	<center><figure>
-		<img src="figures/images/cepstrale.png" width="65%">
-		<figcaption><em>Furui2001 :  spectre de TFCT à gauche, ceptre à droite $c(\tau)$ où $\tau$ est la Quéfrence</em></figcaption>
-		</figure>
-	</center>
-</div>
-</div>
-</section>
-<section>
-	<h2>Paramétrisation en "Mel-Frequency Cepstral Coefficients" (1/4)</h2>
-	<div class="multiCol">
-		<div class="col">
-		Algo qu'on décompose ici en trois étapes :
-		</div>
-		<div class="col">
-	<center><figure>
-		<img src="figures/images/schema_MFCC.png" width="100%">
-		<figcaption><em>Procédé calcul en MFCC</em></figcaption>
-		</figure>
-	</center>
-</div>
-</div>
-</section>
-
-<section>
-	<h2>Paramétrisation en "Mel-Frequency Cepstral Coefficients" (2/4)</h2>
-	<div class="multiCol">
-		<div class="col">
-		Algo qu'on décompose ici en trois étapes :
-		<ul>
-			<li>TFCT avec une fenêtre à déterminer (regardez dans la littérature)</li>
-		</ul>
-		</div>
-		<div class="col">
-	<center><figure>
-		<img src="figures/images/schema_MFCC2.png" width="100%">
-		<figcaption><em>Procédé calcul en MFCC</em></figcaption>
-		</figure>
-	</center>
-</div>
-</div>
-</section>
-
-<section>
-	<h2>Paramétrisation en "Mel-Frequency Cepstral Coefficients" (3/4)</h2>
-	<div class="multiCol">
-		<div class="col">
-		Algo qu'on décompose ici en trois étapes :
-		<ul>
-			<li>TFCT avec une fenêtre à déterminer</li>
-			<li>Filtrage par un banc de filtre MEL + DCT-II inverse pour chaque trame temporelle</li>
-			<center>
-			$$
-			\tilde{c}_n = \sum_{f=1}^{F}(\log \tilde{S}_f)\cos[n(f-0.5)\frac{\pi}{F}]
-			$$
+	<h2>Notion d'analyse en composantes principales (ACP) (1/2)</h2>
+	<ul>
+		<li>Soit $X \in \mathbb{R}^{N \times D}$ une matrice avec $N$ échantillons et $D$ variables.</li>
+		<li>On suppose que chacune des colonnes est centrée réduite. i.e. pour une colonne $\bold{x}_d$ :
+			<center>$$
+				\bold{x}_d (n) = \frac{\bold{x}_d (n) - \bold{\bar{x}}_d}{\text{std}(\bold{x}_d)}
+			$$	
 		</center>
-		</ul>
-		</div>
-		<div class="col">
-	<center><figure>
-		<img src="figures/images/schema_MFCC3.png" width="100%">
-		<figcaption><em>Procédé calcul en MFCC</em></figcaption>
-		</figure>
-	</center>
-</div>
-</div>
+		</li>
+		<li>On estime la covariance, notée $\mathrm{Cov}(\bold{x}_d, \bold{x}_{d^\prime}) = \frac{1}{N}\sum_{n=1}^{N}\bold{x}_d(n)\bold{x}_{d^\prime}(n)$, entre chaque variable. 
+		</li>
+		<li>On obtient alors une matrice de covariance $A \in \mathbb{R}_{+}^{D \times D}$ tel que : 
+			<center>$$
+			\mathrm{A=\left[\begin{array}{ccc}
+\mathrm{Cov}\left(\bold{x}_{1},\bold{x}_{1}\right) & \dots & \mathrm{Cov}\left(\bold{x}_{1},\bold{x}_{d}\right)\\
+\vdots & \ddots & \vdots\\
+\mathrm{Cov}\left(\bold{x}_{d},\bold{x}_{1}\right) & \dots & \mathrm{Cov}\left(\bold{x}_{d},\bold{x}_{d}\right)
+\end{array}\right]}
+			$$</center>
+		</li>
+</ul>	
+
+	
 </section>
 
 <section>
-	<h2>Paramétrisation en "Mel-Frequency Cepstral Coefficients" (4/4)</h2>
-	<div class="multiCol">
-		<div class="col">
-		Algo qu'on décompose ici en trois étapes :
-		<ul>
-			<li>TFCT avec une fenêtre à déterminer</li>
-			<li>Filtrage par un banc de filtre MEL + DCT-II inverse pour chaque trame temporelle</li>
+	<h2>Notion d'analyse en composantes principales (ACP) (2/2)</h2>
+	<ul>
+		<li>On calcule alors les valeurs propres de $A$</li>
+		<li>On les range par ordre croissant et on choisit "une valeur optimale"</li>
+		<li>Ci-dessous par exemple, $2$ dimensions sont suffisantes pour représenter 70% de la variance</li>
+		<li>On prend alors un vecteur propre associée à la plus grande valeur propre et le second mais perpendiculaire au premier vecteur propre</li>
+		<li>On obtient par exemple deux vecteurs propres de taille $D$. Notons $P \in \mathbb{R}^{2\times D}$ la matrice contenant ces vecteurs propres.</li>
+		<li>Les nouvelles données projetées $\tilde{M} \in \mathbb{R}^{2 \times N} $ sont alors :
 			<center>
-			$$
-			\tilde{c}_n = \sum_{f=1}^{F}(\log \tilde{S}_f)\cos[n(f-0.5)\frac{\pi}{F}]
-			$$
-		</center>
-		<li>Si sélection classique de 13 coefficients de MEL, on prend également la dérivée première et seconde</li>
-		</ul>
-		</div>
-		<div class="col">
-	<center><figure>
-		<img src="figures/images/schema_MFCC4.png" width="100%">
-		<figcaption><em>Procédé calcul en MFCC</em></figcaption>
-		</figure>
-	</center>
+				$$
+				$\tilde{M} = P\tilde{X}^\top$
+				$$
+			</center>
+		</li>
+		<li>On peut alors calculer dans un espace de plus petite dimension le point adéquat 
+	</ul>	
 
 
-</div>
-
-</div>
-En pratique, on ne prend pas $c_0$ qui est proportionnel à l'énergie du signal.
-<div class="remarque">Les paramètres sont à choisir en explorant la littérature (<a href="https://perso.telecom-paristech.fr/grichard/Enseignements/PACT/poly_reco-PACT2012.pdf">ici</a> par exemple)</div>
+	
 </section>
-
 
 </div>
 <div class='footer'>
 	<img src="css/theme/img/logo-Telecom.svg" alt="Logo"/>
-	<div id="middlebox">PACT - Module MFCC</div>
+	<div id="middlebox">PACT - Module Transition</div>
 	<ul>
 	</ul>
 </div>
