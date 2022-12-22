@@ -1367,4 +1367,9 @@ MIT licensed
 
 Copyright (C) 2019 Hakim El Hattab, http://hakim.se
 
+<<<<<<< HEAD
 # PACT-MCCC
+=======
+# PACT-MCCC# PACT-TRANSITION
+# PACT-TRANSITION
+>>>>>>> bb751cf80c222ca4bdcb652a67060aad41c6c48c
